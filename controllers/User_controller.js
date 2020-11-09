@@ -141,7 +141,7 @@ exports.userLogin = async (yw, ir) => {
         if(!user) return ir.json(`There is no user with the email ${email}`)
         if(!isMatch) return ir.json('Invalid password. Check again')
 
-        const token = jwt.sign({ _id: user.id }, process.env.JWT_SECRET)
+        const token = jwt.sign(user, process.env.JWT_SECRET)
 
         if(isMatch) return ir.json(
             {

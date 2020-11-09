@@ -42,7 +42,7 @@ exports.getAll = async (yw, ir) => {
 
     const sysadmins = await SysadminModel.find().populate({
         path: 'companies',
-        model: 'CorpAdmin'
+        model: 'Company'
     })
 
     try {
@@ -59,7 +59,7 @@ exports.getSingle = async (yw, ir) => {
     const id = yw.params.id
     const found = await SysadminModel.findById(id).populate({
         path: 'companies',
-        model: 'CorpAdmin'
+        model: 'Company'
     })
 
     if(!found) return ir.status(404).json('There seems no system admin in the database. Create new one')
@@ -67,7 +67,7 @@ exports.getSingle = async (yw, ir) => {
     try {
         await SysadminModel.findById(id).populate({
             path: 'companies',
-            model: 'CorpAdmin'
+            model: 'Company'
         }).then(result => {
             return ir.status(200).json(result)
         }).catch(error => {
@@ -83,7 +83,7 @@ exports.updateOne = async (yw, ir) => {
 
     const found = await SysadminModel.findById(yw.params.id).populate({
         path: 'companies',
-        model: 'CorpAdmin'
+        model: 'Company'
     })
 
     const salt = await bcrypt.genSalt()
@@ -113,7 +113,7 @@ exports.removeOne = async (yw, ir) => {
 
     const found = await SysadminModel.findById(yw.params.id).populate({
         path: 'companies',
-        model: 'CorpAdmin'
+        model: 'Company'
     })
 
     if(found.length == 0) return ir.status(404).json('This user is not found or has been removed')
@@ -131,17 +131,17 @@ exports.removeOne = async (yw, ir) => {
 
 exports.sysadminLogin = async (yw, ir) => {
 
-    const { email, password } = yw.body
-    const exist = await SysadminModel.findOne({ email: email })
-    const isMatch = await bcrypt.compare(password, exist.password)
+    const { phone, password } = yw.body
+    const sysadmin = await SysadminModel.findOne({ phone: phone })
+    const isMatch = await bcrypt.compare(password, sysadmin.password)
 
-    if(!exist) return ir.status(404).json('Account not found')
+    if(!sysadmin) return ir.status(404).json('Account not found')
     if(!isMatch) return ir.status(405).json('Invalid password. Check again')
 
-    const token = jwt.sign({ _id: exist.id }, process.env.JWT_SECRET)
+    const token = jwt.sign({ _id: sysadmin.id }, process.env.JWT_SECRET, { expiresIn: 60*60 })
 
     try {
-        if(isMatch) return ir.status(200).json({ token, exist })
+        if(isMatch) return ir.status(200).json({ token, sysadmin })
     }
     catch(aldaa) {
         ir.status(500).json(aldaa.message)

@@ -1,7 +1,12 @@
+const mongoose = require('mongoose')
+const { CompanyModel } = require('../models/Corpadmin_model')
 const { StaffModel } = require('../models/Staff_model')
 const bcrypt = require('bcrypt')
 
-exports.createStaffAdmin = async (yw, ir) => {
+exports.createOne = async (yw, ir) => {
+
+    const companyId = await CompanyModel.find({})
+    if(!companyId) return ir.status(404).json('Corporate admin does not exists. You should company admin first')
 
     const {
         fathername,
@@ -16,9 +21,6 @@ exports.createStaffAdmin = async (yw, ir) => {
 
     const salt = await bcrypt.genSalt()
     const hashed = await bcrypt.hash(password, salt)
-    const companyId = await CorpAdminModel.find({})
-
-    if(!companyId) return ir.status(404).json('Corporate admin does not exists. You should create admin first')
 
     const newStaff = new StaffModel({
         _id: new mongoose.Types.ObjectId(),
@@ -34,16 +36,42 @@ exports.createStaffAdmin = async (yw, ir) => {
         company: companyId[0]
     })
 
-    const id = yw.params.id
-    const exist = await StaffModel.findById(id)
-    const create = await newStaff.save()
+    const exist = await StaffModel.findOne({ phone: phone })
+    if(exist) return ir.status(405).json('Admin staff is already exists')
 
     try {
-        if(exist) return ir.status(405).json('Admin staff is already exists')
-        if(!create) return ir.status(400).json('Cannot create admin staff')
-        ir.status(201).json(create)
+        await newStaff.save().then(saved => {
+            return ir.status(201).json(saved)
+        }).catch(error => {
+            return ir.status(400).json(error)
+        })
     }
     catch(aldaa) {
         ir.status(500).json(aldaa.message)
+    }
+}
+
+exports.staffAdminLogin = async (yw, ir) => {
+
+    const { phone, password } = yw.body
+    const staffadmin = await StaffModel.findOne({ isAdmin: true, phone: phone })
+    const isMatch = await bcrypt.compare(password, staffadmin.password)
+
+    if(!staffadmin) return ir.json(`There is no record with the phone ${phone}`)
+    if(!isMatch) return ir.json('Invalid password. Check again')
+
+    try {
+
+        const token = jwt.sign(staffadmin, process.env.JWT_SECRET)
+
+        if(isMatch) return ir.status(200).json(
+            {
+                token,
+                staffadmin
+            }
+        )
+    }
+    catch(aldaa) {
+        ir.json(aldaa.message)
     }
 }

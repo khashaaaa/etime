@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const adminschema = mongoose.Schema({
+const companyschema = mongoose.Schema({
     _id: mongoose.Types.ObjectId,
     reg: {
         type: Number,
@@ -39,15 +39,15 @@ const adminschema = mongoose.Schema({
     }
 }, { timestamps: true })
 
-adminschema.virtual('staffs', {
+companyschema.virtual('staffs', {
     ref: 'Staff',
     localField: '_id',
     foreignField: 'company'
 })
 
-adminschema.set('toObject', { virtuals: true })
-adminschema.set('toJSON', { virtuals: true })
+companyschema.set('toObject', { virtuals: true })
+companyschema.set('toJSON', { virtuals: true })
 
-const CorpAdminModel = mongoose.model('CorpAdmin', adminschema)
+const CompanyModel = mongoose.model('Company', companyschema)
 
-module.exports = { CorpAdminModel }
+module.exports = { CompanyModel }

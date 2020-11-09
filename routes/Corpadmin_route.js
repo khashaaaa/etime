@@ -1,8 +1,11 @@
 const rtr = require('express').Router()
 
-const { getAll, getSingle, createOne, updateOne, removeOne, removeAll, adminLogin } = require('../controllers/Corpadmin_controller')
+const { getAll, getSingle, createOne, updateOne, removeOne, removeAll, companyLogin } = require('../controllers/Corpadmin_controller')
 
 const { sysadminAuth } = require('../validators/auth')
+
+// Company admin login route
+rtr.post('/login', companyLogin)
 
 // System admin use these routes
 rtr.get('/list', sysadminAuth, getAll)
@@ -12,9 +15,6 @@ rtr.patch('/:id/update-company', sysadminAuth, updateOne)
 rtr.delete('/:id/remove-company', sysadminAuth, removeOne)
 rtr.delete('/remove-all', sysadminAuth, removeAll)
 
-// Company admin login route
-rtr.post('/login', adminLogin)
+const CompanyRoute = rtr
 
-const CorpAdminRoute = rtr
-
-module.exports = { CorpAdminRoute }
+module.exports = { CompanyRoute }

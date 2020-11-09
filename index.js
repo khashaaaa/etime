@@ -19,8 +19,6 @@ if(process.env.MODE === 'development') {
 }
 
 // Database Config
-const port = process.env.PORT
-
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
@@ -32,16 +30,18 @@ mongoose.connect(process.env.DB_URL)
 
 // Routes
 const { SysadminRoute } = require('./routes/Sysadmin_route')
-const { CorpAdminRoute } = require('./routes/Corpadmin_route')
+const { CompanyRoute } = require('./routes/Corpadmin_route')
 const { StaffRoute } = require('./routes/Staff_route')
 const { UserRoute } = require('./routes/User_route')
 
 prog.use('/sysadmin', SysadminRoute)
-prog.use('/companies', CorpAdminRoute)
+prog.use('/companies', CompanyRoute)
 prog.use('/staffs', StaffRoute)
 prog.use('/users', UserRoute)
 
 // App init
+const port = process.env.PORT
+
 prog.listen(port, () => {
     console.log(`Server is running on ${port}`)
 })

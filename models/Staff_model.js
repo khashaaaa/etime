@@ -40,7 +40,7 @@ const staffschema = mongoose.Schema({
     },
     company: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'CorpAdmin',
+        ref: 'Company',
         required: true
     }
 }, { timestamps: true })
