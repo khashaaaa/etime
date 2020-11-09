@@ -1,20 +1,19 @@
 const mongoose = require('mongoose')
 const { CorpAdminModel } = require('../models/Corpadmin_model')
-const { StaffModel } = require('../models/Staff_model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 exports.getAll = async (yw, ir) => {
 
-    const admins = await CorpAdminModel.find().populate({
+    const companies = await CorpAdminModel.find().populate({
         path: 'staffs',
         model: 'Staff'
     })
 
+    if(!companies) return ir.json('Error occured to fetch companies')
+
     try {
-        if(admins.lenght == 0) return ir.status(200).json('There is no admin')
-        if(!admins) return ir.json('Error occured to fetch admins')
-        ir.status(200).json(admins)
+        ir.status(200).json(companies)
     }
     catch(aldaa) {
         ir.status(500).json(aldaa.message)
@@ -24,15 +23,15 @@ exports.getAll = async (yw, ir) => {
 exports.getSingle = async (yw, ir) => {
 
     const id = yw.params.id
-    const admin = await CorpAdminModel.findById(id).populate({
+    const company = await CorpAdminModel.findById(id).populate({
         path: 'staffs',
         model: 'Staff'
     })
 
+    if(!company) return ir.status(404).json('This company has been removed or not created yet')
+
     try {
-        if(admin.length == 0) return ir.status(404).json('There is no admin')
-        if(!admin) return ir.status(404).json('This admin has been removed or not created yet')
-        ir.status(200).json(admin)
+        ir.status(200).json(company)
     }
     catch(aldaa) {
         ir.status(500).json(aldaa.message)
@@ -42,9 +41,11 @@ exports.getSingle = async (yw, ir) => {
 exports.createOne = async (yw, ir) => {
 
     const {
-        fathername,
-        givenname,
+        reg,
+        name,
         email,
+        type,
+        address,
         phone,
         password
     } = yw.body
@@ -52,23 +53,28 @@ exports.createOne = async (yw, ir) => {
     const salt = await bcrypt.genSalt()
     const hashed = await bcrypt.hash(password, salt)
 
-    const newAdmin = new CorpAdminModel({
+    const newCompany = new CorpAdminModel({
         _id: new mongoose.Types.ObjectId(),
-        fathername: fathername,
-        givenname: givenname,
+        reg: reg,
+        name: name,
         email: email,
+        type: type,
+        address: address,
         phone: phone,
         password: hashed
     })
 
     const id = yw.params.id
     const exist = await CorpAdminModel.findById(id)
-    const create = await newAdmin.save()
+
+    if(exist) return ir.status(405).json('Admin is already exist')
 
     try {
-        if(exist) return ir.status(405).json('Admin is already exist')
-        if(create) return ir.status(201).json(create)
-        if(!create) return ir.status(400).json('Cannot create admin')
+        await newCompany.save().then(company => {
+            return ir.status(201).json(company)
+        }).catch(error => {
+            return ir.status(400).json(error)
+        })
     }
     catch(aldaa) {
         ir.status(500).json(aldaa.message)
@@ -96,12 +102,12 @@ exports.updateOne = async (yw, ir) => {
     const id = yw.params.id
     const exist = await CorpAdminModel.findById(id)
 
-    try {
-        if(!exist) return ir.status(404).json('This id does not exist')
+    if(!exist) return ir.status(404).json('This company does not exist')
 
-        CorpAdminModel.findOne({ _id: update.id }, (aldaa, updatedAdmin) => {
+    try {
+        CorpAdminModel.findOne({ _id: update.id }, (aldaa, updatedCompany) => {
             if(aldaa) return ir.status(404).json(aldaa.message)
-            else return ir.status(200).json(updatedAdmin)
+            else return ir.status(200).json(updatedCompany)
         })
     }
     catch(aldaa) {
@@ -112,11 +118,15 @@ exports.updateOne = async (yw, ir) => {
 exports.removeOne = async (yw, ir) => {
 
     const id = yw.params.id
-    const exist = await CorpAdminModel.findById(id)
+    const exist = await CorpAdminModel.findById(id).populate({
+        path: 'staffs',
+        model: 'Staff'
+    })
+
+    if(!exist) return ir.status(404).json('This company has been removed or not in the list')
 
     try {
-        if(!exist) return ir.status(404).json('This admin has been removed or not in the list')
-        CorpAdminModel.findByIdAndRemove(id, (aldaa, removedAdmin) => {
+        await CorpAdminModel.findByIdAndRemove(id, (aldaa, removedAdmin) => {
             if(aldaa) return ir.status(404).json(aldaa.message)
             else return ir.status(200).json(removedAdmin)
         })
@@ -132,8 +142,9 @@ exports.removeAll = async (yw, ir) => {
     const admins = await CorpAdminModel.find({})
     const remove = await CorpAdminModel.deleteMany({})
 
+    if(!admins) return ir.status(404).json('There are already no admins in the list')
+
     try {
-        if(admins.length == 0) return ir.status(404).json('There are already no admins in the list')
         if(!remove) return ir.status(400).json('Error occured to delete admin list')
         else return ir.status(200).json(remove)
     }

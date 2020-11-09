@@ -1,7 +1,8 @@
 const mongoose = require('mongoose')
 
 const staffschema = mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
+    _id: mongoose.Types.ObjectId,
+    isAdmin: false,
     fathername: {
         type: String,
         required: true,
@@ -25,11 +26,6 @@ const staffschema = mongoose.Schema({
         type: String,
         required: true
     },
-    displayName: {
-        type: String,
-        required: true,
-        trim: true
-    },
     description: {
         type: String,
         required: true
@@ -42,7 +38,7 @@ const staffschema = mongoose.Schema({
         type: String,
         required: true
     },
-    admin: {
+    company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'CorpAdmin',
         required: true

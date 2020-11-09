@@ -10,9 +10,9 @@ rtr.post('/login', userLogin)
 // User manipulate Routes
 rtr.get('/list', getAll)
 rtr.get('/:id', getSingle)
-rtr.patch('/:id/update', userAuth, updateValidate, updateOne)
-rtr.delete('/:id/delete', userAuth, removeValidate, removeOne)
-rtr.delete('/delete-list', removeAll)
+rtr.patch('/:id/update-user', userAuth, updateValidate, updateOne)
+rtr.delete('/:id/remove-user', userAuth, removeValidate, removeOne)
+rtr.delete('/remove-all', removeAll)
 
 const UserRoute = rtr
 

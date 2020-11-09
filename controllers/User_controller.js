@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const { UserModel } = require('../models/User_model')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
@@ -46,13 +47,14 @@ exports.createOne = async (yw, ir) => {
     const hashed = await bcrypt.hash(password, salt)
 
     const newUser = new UserModel({
-            fathername: fathername,
-            name: name,
-            email: email,
-            phone: phone,
-            address: address,
-            profilepic: profilepic,
-            password: hashed
+        _id: new mongoose.Schema.Types.ObjectId(),
+        fathername: fathername,
+        name: name,
+        email: email,
+        phone: phone,
+        address: address,
+        profilepic: profilepic,
+        password: hashed
     })
 
     const created = await newUser.save()

@@ -76,8 +76,10 @@ exports.createOne = async (yw, ir) => {
     const hashed = await bcrypt.hash(password, salt)
     const adminId = await CorpAdminModel.find({})
 
+    if(!adminId) return ir.status(404).json('Admin not exists. You should create admin first')
+
     const newStaff = new StaffModel({
-        _id: new mongoose.Types.ObjectId(),
+        _id: new mongoose.Schema.Types.ObjectId(),
         fathername: fathername,
         givenname: givenname,
         email: email,

@@ -4,10 +4,9 @@ const userAuth = async (yw, ir, next) => {
 
     const header = yw.headers['authorization']
     const bearertoken = header && header.split(' ')[1]
+    if(!bearertoken) return ir.status(405).json('Auth denied')
     
-    try {
-        if(!bearertoken) return ir.status(401).json('Auth denied')
-        
+    try {        
         jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
             if(error) return ir.status(401).json('Invalid token')
 
@@ -20,14 +19,13 @@ const userAuth = async (yw, ir, next) => {
     }
 }
 
-const adminAuth = async (yw, ir, next) => {
+const companyAuth = async (yw, ir, next) => {
 
     const header = yw.headers['authorization']
     const bearertoken = header && header.split(' ')[1]
+    if(!bearertoken) return ir.status(405).json('Access denied')
     
-    try {
-        if(!bearertoken) return ir.status(401).json('Access denied')
-        
+    try {        
         jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
             if(error) return ir.status(401).json('Invalid token')
 
@@ -44,10 +42,9 @@ const staffAuth = async (yw, ir, next) => {
 
     const header = yw.headers['authorization']
     const bearertoken = header && header.split(' ')[1]
+    if(!bearertoken) return ir.status(405).json('Access denied')
 
     try {
-        if(!bearertoken) return ir.status(401).json('Access denied')
-
         jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
             if(error) return ir.status(401).json('Invalid token')
 
@@ -60,4 +57,42 @@ const staffAuth = async (yw, ir, next) => {
     }
 }
 
-module.exports = { userAuth, adminAuth, staffAuth }
+const sysadminAuth = async (yw, ir, next) => {
+
+    const header = yw.headers['authorization']
+    const bearertoken = header && header.split(' ')[1]
+    if(!bearertoken) return ir.status(405).json('Access denied')
+
+    try {
+        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
+            if(error) return ir.status(401).json('Invalid token')
+
+            ir.admin = decode.admin
+            next()
+        })
+    }
+    catch(aldaa) {
+        ir.status(500).json(aldaa.message)
+    }
+}
+
+const staffAdminAuth = async (yw, ir, next) => {
+
+    const header = yw.headers['authorization']
+    const bearertoken = header && header.split(' ')[1]
+    if(!bearertoken) return ir.status(405).json('Access denied')
+
+    try {
+        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
+            if(error) return ir.status(401).json('Invalid token')
+
+            ir.admin = decode.admin
+            next()
+        })
+    }
+    catch(aldaa) {
+        ir.status(500).json(aldaa.message)
+    }
+}
+
+module.exports = { sysadminAuth, userAuth, companyAuth, staffAuth, staffAdminAuth }
