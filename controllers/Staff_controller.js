@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { CompanyModel } = require('../models/Corpadmin_model')
+const { CompanyModel } = require('../models/Company_model')
 const { StaffModel } = require('../models/Staff_model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')

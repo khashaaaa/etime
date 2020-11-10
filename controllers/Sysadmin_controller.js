@@ -132,16 +132,18 @@ exports.removeOne = async (yw, ir) => {
 exports.sysadminLogin = async (yw, ir) => {
 
     const { phone, password } = yw.body
-    const sysadmin = await SysadminModel.findOne({ phone: phone })
+    const sysadmin = await SysadminModel.findOne({ phone: phone }).populate({
+        path: 'companies',
+        model: 'Company'
+    })
     const isMatch = await bcrypt.compare(password, sysadmin.password)
 
     if(!sysadmin) return ir.status(404).json('Account not found')
     if(!isMatch) return ir.status(405).json('Invalid password. Check again')
 
-    const token = jwt.sign({ _id: sysadmin.id }, process.env.JWT_SECRET, { expiresIn: 60*60 })
-
     try {
-        if(isMatch) return ir.status(200).json({ token, sysadmin })
+        const token = jwt.sign({ _id: sysadmin.id }, process.env.JWT_SECRET, { expiresIn: '1h' })
+        ir.status(200).json({ token, sysadmin })
     }
     catch(aldaa) {
         ir.status(500).json(aldaa.message)

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { CompanyModel } = require('../models/Corpadmin_model')
+const { CompanyModel } = require('../models/Company_model')
 const { StaffModel } = require('../models/Staff_model')
 const bcrypt = require('bcrypt')
 
@@ -62,7 +62,7 @@ exports.staffAdminLogin = async (yw, ir) => {
 
     try {
 
-        const token = jwt.sign(staffadmin, process.env.JWT_SECRET)
+        const token = jwt.sign(staffadmin, process.env.JWT_SECRET, { expiresIn: '1h' })
 
         if(isMatch) return ir.status(200).json(
             {

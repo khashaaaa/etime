@@ -7,10 +7,10 @@ const sysadminAuth = async (yw, ir, next) => {
     if(bearertoken == null) return ir.status(401).json('Access denied')
 
     try {
-        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, sysadmin) => {
-            if(error) return ir.status(403).json('Invalid token')
+        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
+            if(error) return ir.status(403).json(error.message)
 
-            ir.sysadmin = sysadmin
+            ir.sysadmin = decode.sysadmin
             next()
         })
     }
@@ -26,10 +26,10 @@ const companyAuth = async (yw, ir, next) => {
     if(bearertoken == null) return ir.status(401).json('Access denied')
     
     try {        
-        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, company) => {
-            if(error) return ir.status(403).json('Invalid token')
+        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
+            if(error) return ir.status(403).json(error.message)
 
-            ir.company = company
+            ir.company = decode.company
             next()
         })
     }
@@ -45,10 +45,10 @@ const staffAdminAuth = async (yw, ir, next) => {
     if(bearertoken == null) return ir.status(401).json('Access denied')
 
     try {
-        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, staffadmin) => {
-            if(error) return ir.status(403).json('Invalid token')
+        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
+            if(error) return ir.status(403).json(error.message)
 
-            ir.staffadmin = staffadmin
+            ir.staffadmin = decode.staffadmin
             next()
         })
     }
@@ -64,10 +64,10 @@ const staffAuth = async (yw, ir, next) => {
     if(bearertoken == null) return ir.status(401).json('Access denied')
 
     try {
-        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, staff) => {
-            if(error) return ir.status(403).json('Invalid token')
+        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
+            if(error) return ir.status(403).json(error.message)
 
-            ir.staff = staff
+            ir.staff = decode.staff
             next()
         })
     }
@@ -83,11 +83,10 @@ const userAuth = async (yw, ir, next) => {
     if(!bearertoken) return ir.status(405).json('Auth denied')
     
     try {        
-        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, user) => {
-            if(error) return ir.status(401).json('Invalid token')
+        jwt.verify(bearertoken, process.env.JWT_SECRET, (error, decode) => {
+            if(error) return ir.status(401).json(error.message)
 
-            ir.user = user
-            console.log(ir)
+            ir.user = decode.user
             next()
         })
     }

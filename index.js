@@ -2,12 +2,14 @@ const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const bodyParser = require('body-parser')
+const cookieparser = require('cookie-parser')
 
 const prog = express()
 
 // Uses
 prog.use(bodyParser.json());
 prog.use(bodyParser.urlencoded({ extended: true }));
+prog.use(cookieparser())
 
 require('dotenv').config()
 
@@ -30,7 +32,7 @@ mongoose.connect(process.env.DB_URL)
 
 // Routes
 const { SysadminRoute } = require('./routes/Sysadmin_route')
-const { CompanyRoute } = require('./routes/Corpadmin_route')
+const { CompanyRoute } = require('./routes/Company_route')
 const { StaffRoute } = require('./routes/Staff_route')
 const { UserRoute } = require('./routes/User_route')
 

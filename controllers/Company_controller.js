@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const { SysadminModel } = require('../models/Sysadmin_model')
-const { CompanyModel } = require('../models/Corpadmin_model')
+const { CompanyModel } = require('../models/Company_model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
@@ -199,7 +199,7 @@ exports.companyLogin = async (yw, ir) => {
 
     try {
 
-        const token = jwt.sign(company, process.env.JWT_SECRET)
+        const token = jwt.sign(company, process.env.JWT_SECRET, { expiresIn: '1h' })
 
         if(isMatch) return ir.status(200).json(
             {
