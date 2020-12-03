@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const userschema = mongoose.Schema({
+const userschema = new mongoose.Schema({
     fathername: {
         type: String,
         required: true

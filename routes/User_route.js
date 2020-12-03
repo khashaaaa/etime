@@ -3,15 +3,15 @@ const UserControl = require('../controllers/User_controller')
 const { userAuth } = require('../validators/auth')
 const { createValidate, updateValidate, removeValidate } = require('../validators/custom')
 
-// User Register and Authernticate Routes
+// User Register and Authorization Routes
 rtr.post('/create', createValidate, UserControl.createOne)
 rtr.post('/login', UserControl.userLogin)
 
-// User manipulate Routes
+// User manipulated by Systems admins
 rtr.get('/list', UserControl.getAll)
-rtr.get('/:id', UserControl.getSingle)
-rtr.patch('/:id/update-user', userAuth, updateValidate, UserControl.updateOne)
-rtr.delete('/:id/remove-user', userAuth, removeValidate, UserControl.removeOne)
+rtr.get('/:userID/profile', UserControl.getSingle)
+rtr.patch('/:userID/update-user', userAuth, updateValidate, UserControl.updateOne)
+rtr.delete('/:userID/remove-user', userAuth, removeValidate, UserControl.removeOne)
 rtr.delete('/remove-all', UserControl.removeAll)
 
 const UserRoute = rtr

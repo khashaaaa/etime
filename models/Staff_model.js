@@ -1,7 +1,12 @@
 const mongoose = require('mongoose')
 
-const staffschema = mongoose.Schema({
+const staffschema = new mongoose.Schema({
     _id: mongoose.Types.ObjectId,
+    company: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Company',
+        required: true
+    },
     isAdmin: false,
     fathername: {
         type: String,
@@ -30,20 +35,32 @@ const staffschema = mongoose.Schema({
         type: String,
         required: true
     },
-    calendar: {
-        type: String,
-        required: true
+    created: {
+        year: Number,
+        month: Number,
+        weekday: Number,
+        day: Number,
+        hour: Number,
+        minute: Number
     },
-    password: {
-        type: String,
-        required: true
-    },
-    company: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Company',
-        required: true
+    updated: {
+        year: Number,
+        month: Number,
+        weekday: Number,
+        day: Number,
+        hour: Number,
+        minute: Number
     }
-}, { timestamps: true })
+})
+
+staffschema.virtual('services', {
+    ref: 'Service',
+    localField: '_id',
+    foreignField: 'staff'
+})
+
+staffschema.set('toObject', { virtuals: true })
+staffschema.set('toJSON', { virtuals: true })
 
 const StaffModel = mongoose.model('Staff', staffschema)
 

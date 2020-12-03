@@ -1,190 +1,64 @@
 const mongoose = require('mongoose')
 const { SysadminModel } = require('../models/Sysadmin_model')
 const { CompanyModel } = require('../models/Company_model')
+const { StaffModel } = require('../models/Staff_model')
+const { ServiceModel } = require('../models/Service_model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-exports.getAll = async (yw, ir) => {
+exports.profile = async (yw, ir) => {
 
-    const companies = await CompanyModel.find().populate({
-        path: 'sysadmin',
-        model: 'Sysadmin'
-    }).populate({
-        path: 'staffs',
-        model: 'Staff'
-    })
+    const { companyID } = yw.params
+    const exist = await CompanyModel.findById(companyID)
 
-    if(!companies) return ir.json('Error occured to fetch companies')
+    if(exist.length == 0) return ir.status(404).json('Result not found')
 
     try {
-        ir.status(200).json(companies)
+        ir.status(200).json(exist)
     }
     catch(aldaa) {
-        ir.status(500).json(aldaa.message)
-    }
-}
-
-exports.getSingle = async (yw, ir) => {
-
-    const id = yw.params.id
-    const company = await CompanyModel.findById(id).populate({
-        path: 'sysadmin',
-        model: 'Sysadmin'
-    }).populate({
-        path: 'staffs',
-        model: 'Staff'
-    })
-
-    if(!company) return ir.status(404).json('This company has been removed or not created yet')
-
-    try {
-        ir.status(200).json(company)
-    }
-    catch(aldaa) {
-        ir.status(500).json(aldaa.message)
-    }
-}
-
-exports.createOne = async (yw, ir) => {
-
-    const sysadmin = await SysadminModel.find({})
-    if(!sysadmin) return ir.status(405).json('Systems admin does not exists')
-
-    const {
-        reg,
-        name,
-        email,
-        type,
-        address,
-        phone,
-        password
-    } = yw.body
-
-    const salt = await bcrypt.genSalt()
-    const hashed = await bcrypt.hash(password, salt)
-
-    const newCompany = new CompanyModel({
-        _id: new mongoose.Types.ObjectId(),
-        reg: reg,
-        name: name,
-        email: email,
-        type: type,
-        address: address,
-        phone: phone,
-        password: hashed,
-        sysadmin: sysadmin[0]
-    })
-
-    const id = yw.params.id
-    const exist = await CompanyModel.findById(id)
-
-    if(exist) return ir.status(405).json('Admin is already exist')
-
-    try {
-        await newCompany.save().then(company => {
-            return ir.status(201).json(company)
-        }).catch(error => {
-            return ir.status(400).json(error)
-        })
-    }
-    catch(aldaa) {
-        ir.status(500).json(aldaa.message)
+        ir.json(aldaa)
     }
 }
 
 exports.updateOne = async (yw, ir) => {
 
-    const sysadmin = await SysadminModel.find({})
-    if(!sysadmin) return ir.status(405).json('The systems admin not found')
-
-    const {
-        reg,
-        name,
-        email,
-        type,
-        address,
-        phone,
-        password
-    } = yw.body
+    const { companyID } = yw.params
 
     const salt = await bcrypt.genSalt()
-    const hashed = await bcrypt.hash(password, salt)
+    const hashed = await bcrypt.hash(yw.body.password, salt)
 
-    const update = await CompanyModel.findOneAndUpdate({ _id: yw.params.id }, {
-        reg: reg,
-        name: name,
-        email: email,
-        type: type,
-        address: address,
-        phone: phone,
-        password: hashed
+    var ognoo = new Date()
+
+    const obj = {
+        reg: yw.body.reg,
+        name: yw.body.name,
+        email: yw.body.email,
+        address: yw.body.address,
+        phone: yw.body.phone,
+        password: hashed,
+        updated: {
+            year: ognoo.getFullYear(),
+            month: ognoo.getMonth() + 1,
+            weekday: ognoo.getDay(),
+            day: ognoo.getDate(),
+            hour: ognoo.getHours(),
+            minute: ognoo.getMinutes()
+        },
+    }
+
+    const update = await CompanyModel.findOneAndUpdate(companyID, obj)
+
+    const updated = await CompanyModel.findOne({ _id: update.id }).populate({
+        path: 'sysadmin',
+        model: 'Sysadmin'
     })
 
-    const id = yw.params.id
-    const exist = await CompanyModel.findById(id)
-
-    if(!exist) return ir.status(404).json('This company does not exist')
-
     try {
-        await CompanyModel.findOne({ _id: update.id }).populate({
-            path: 'sysadmin',
-            model: 'Sysadmin'
-        }).populate({
-            path: 'staffs',
-            model: 'Staff'
-        }).then(result => {
-            return ir.status(200).json(result)
-        }).catch(error => {
-            return ir.status(400).json(error)
-        })
+        ir.status(200).json(updated)
     }
     catch(aldaa) {
-        ir.status(500).json(aldaa.message)
-    }
-}
-
-exports.removeOne = async (yw, ir) => {
-
-    const id = yw.params.id
-    const exist = await CompanyModel.findById(id).populate({
-        path: 'staffs',
-        model: 'Staff'
-    })
-
-    if(!exist) return ir.status(404).json('This company has been removed or not in the list')
-
-    try {
-        await CompanyModel.findByIdAndRemove(id).populate({
-            path: 'sysadmin',
-            model: 'Sysadmin'
-        }).populate({
-            path: 'staffs',
-            model: 'Staff'
-        }).then(result => {
-            return ir.status(200).json(result)
-        }).catch(error => {
-            return ir.status(400).json(error)
-        })
-    }
-    catch(aldaa) {
-        ir.status(500).json(aldaa.message)
-    }
-}
-
-// Remove all Admin
-exports.removeAll = async (yw, ir) => {
-
-    const companies = await CompanyModel.find({})
-    const remove = await CompanyModel.deleteMany({})
-
-    if(!companies) return ir.status(404).json('There are already no company in the list')
-    if(!remove) return ir.status(400).json('Error occured to delete companies')
-
-    try {
-        ir.status(200).json(remove)
-    }
-    catch(aldaa) {
-        ir.status(500).json(aldaa.message)
+        ir.json(aldaa)
     }
 }
 
@@ -199,7 +73,7 @@ exports.companyLogin = async (yw, ir) => {
 
     try {
 
-        const token = jwt.sign(company, process.env.JWT_SECRET, { expiresIn: '1h' })
+        const token = jwt.sign(company.toJSON(), process.env.JWT_SECRET, { expiresIn: '1h' })
 
         if(isMatch) return ir.status(200).json(
             {
@@ -210,5 +84,292 @@ exports.companyLogin = async (yw, ir) => {
     }
     catch(aldaa) {
         ir.json(aldaa.message)
+    }
+}
+
+// Staff route
+exports.createStaff = async (yw, ir) => {
+
+    const { companyID } = yw.params
+
+    var ognoo = new Date()
+
+    const staffdata = {
+        _id: new mongoose.Types.ObjectId(),
+        company: companyID,
+        fathername: yw.body.fathername,
+        givenname: yw.body.givenname,
+        email: yw.body.email,
+        phone: yw.body.phone,
+        address: yw.body.address,
+        description: yw.body.description,
+        created: {
+            year: ognoo.getFullYear(),
+            month: ognoo.getMonth() + 1,
+            weekday: ognoo.getDay(),
+            day: ognoo.getDate(),
+            hour: ognoo.getHours(),
+            minute: ognoo.getMinutes()
+        }
+    }
+
+    const newStaff = new StaffModel(staffdata)
+    const saved = await newStaff.save()
+
+    const created = await CompanyModel.findByIdAndUpdate(companyID, {
+        $push: {
+            staffs: saved
+        }
+    })
+
+    const staff = await StaffModel.findOne({ company: created }).populate({
+        path: 'company',
+        model: 'Company'
+    })
+
+    try {
+        ir.status(201).json(saved)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.getStaffs = async (yw, ir) => {
+
+    const { companyID } = yw.params
+
+    const isFound = await StaffModel.find({ company: companyID }).populate({
+        path: 'services',
+        model: 'Service'
+    })
+
+    if(isFound.length == 0) return ir.status(404).json('There is no Staff admin')
+
+    try {
+        ir.status(200).json(isFound)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.getSingleStaff = async (yw, ir) => {
+
+    const { companyID, staffID } = yw.params
+
+    const isFound = await StaffModel.findOne({ _id: staffID, company: companyID }).populate({
+        path: 'company',
+        model: 'Company'
+    }).populate({
+        path: 'services',
+        model: 'Service'
+    })
+
+    if(isFound.length == 0) return ir.status(404).json('There is no Staff')
+
+    try {
+        ir.status(200).json(isFound)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.updateStaff = async (yw, ir) => {
+    
+    const { companyID, staffID } = yw.params
+
+    const staff = await StaffModel.findOne({ company: companyID })
+
+    if(staff.length == 0) return ir.status(404).json('Company not found')
+
+    const {
+        fathername,
+        givenname,
+        email,
+        phone,
+        address,
+        description
+    } = yw.body
+
+    const updated = await StaffModel.findOneAndUpdate(staffID, {
+        fathername: fathername,
+        givenname: givenname,
+        email: email,
+        phone: phone,
+        address: address,
+        description: description
+    })
+
+    try {
+        await StaffModel.findOne({ _id: updated.id }).then(result => {
+            return ir.status(200).json(result)
+        }).catch(error => {
+            return ir.status(401).json(error)
+        })
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.removeStaff = async (yw, ir) => {
+
+    const { companyID, staffID } = yw.params
+
+    const exist = await StaffModel.findOne({ company: companyID })
+
+    if(exist.length == 0) return ir.status(404).json('Staff not exists')
+
+    try {
+        await StaffModel.findByIdAndDelete(staffID).then(result => {
+            return ir.status(200).json(result)
+        }).catch(error => {
+            return ir.status(401).json(error)
+        })
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.removeAllStaff = async (yw, ir) => {
+
+    const { companyID } = yw.params
+
+    const exist = await StaffModel.find({ company: companyID })
+
+    if(exist.length == 0) return ir.status(404).json('Staff not exists')
+
+    try {
+        await StaffModel.deleteMany({ company: companyID }).then(result => {
+            return ir.status(200).json(result.deletedCount + ' item deleted')
+        }).catch(error => {
+            return ir.status(401).json(error)
+        })
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+// Service routes
+exports.createService = async (yw, ir) => {
+
+    const { companyID, staffID } = yw.params
+
+    const staffs = await StaffModel.find({ company: companyID })
+
+    ir.body = staffs
+
+    const obj = {
+        _id: new mongoose.Types.ObjectId(),
+        company: companyID,
+        staff: staffID,
+        title: yw.body.title,
+        startdate: yw.body.startdate,
+        enddate: yw.body.enddate
+    }
+
+    const newservice = new ServiceModel(obj).save()
+    const staff = await StaffModel.findByIdAndUpdate(staffID, {
+        $push: newservice
+    })
+    const result = await ServiceModel.findOne({ staff: staff })
+
+    try {
+        ir.status(200).json(result)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.getServices = async (yw, ir) => {
+
+    const { companyID, staffID } = yw.params
+
+    const services = await ServiceModel.find({ company: companyID, staff: staffID })
+
+    try {
+        ir.status(200).json(services)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.getSingleService = async (yw, ir) => {
+
+    const { companyID, staffID, serviceID } = yw.params
+
+    const company = await ServiceModel.findOne({ _id: serviceID, company: companyID, staff: staffID })
+
+    try {
+        ir.status(200).json(company)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.updateService = async (yw, ir) => {
+
+    const { companyID, staffID, serviceID } = yw.params
+
+    const obj = {
+        title: yw.body.title,
+        startdate: yw.body.startdate,
+        enddate: yw.body.enddate
+    }
+
+    const update = await ServiceModel.findOneAndUpdate({ _id: serviceID, staff: staffID, company: companyID }, obj)
+
+    const updated = await ServiceModel.findById({ _id: update.id })
+
+    if(!updated) return ir.status(401).json('Cannot update')
+
+    try {
+        ir.status(200).json(updated)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.removeService = async (yw, ir) => {
+
+    const { companyID, serviceID } = yw.params
+
+    const exist = await ServiceModel.findOne({ _id: serviceID, company: companyID })
+
+    if(exist.length == 0) return ir.status(404).json('The service not found')
+
+    const removed = await ServiceModel.findOneAndDelete({ _id: serviceID, company: companyID })
+
+    try {
+        ir.json(removed)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
+    }
+}
+
+exports.removeAllService = async (yw, ir) => {
+
+    const { companyID } = yw.params
+
+    const removed = await ServiceModel.deleteMany({})
+
+    const exist = await ServiceModel.find({ company: companyID })
+
+    if(exist.length == 0) return ir.status(404).json('You don t have any services yet')
+
+    try {
+        ir.status(200).json(removed)
+    }
+    catch(aldaa) {
+        ir.json(aldaa)
     }
 }

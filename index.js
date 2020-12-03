@@ -1,15 +1,22 @@
 const express = require('express')
+const session = require('express-session')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const bodyParser = require('body-parser')
-const cookieparser = require('cookie-parser')
 
 const prog = express()
 
 // Uses
 prog.use(bodyParser.json());
 prog.use(bodyParser.urlencoded({ extended: true }));
-prog.use(cookieparser())
+prog.use(session({
+    secret: 'megalovania',
+    cookie: {
+        maxAge: 1000*60*60,
+    },
+    resave: true,
+    saveUninitialized: true
+}))
 
 require('dotenv').config()
 
@@ -37,9 +44,9 @@ const { StaffRoute } = require('./routes/Staff_route')
 const { UserRoute } = require('./routes/User_route')
 
 prog.use('/sysadmin', SysadminRoute)
-prog.use('/companies', CompanyRoute)
-prog.use('/staffs', StaffRoute)
-prog.use('/users', UserRoute)
+prog.use('/company', CompanyRoute)
+prog.use('/staff', StaffRoute)
+prog.use('/', UserRoute)
 
 // App init
 const port = process.env.PORT

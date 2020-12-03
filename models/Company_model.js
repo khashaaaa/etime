@@ -1,7 +1,12 @@
 const mongoose = require('mongoose')
 
-const companyschema = mongoose.Schema({
+const companyschema = new mongoose.Schema({
     _id: mongoose.Types.ObjectId,
+    sysadmin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Sysadmin',
+        required: true
+    },
     reg: {
         type: Number,
         minlength: 7,
@@ -16,9 +21,6 @@ const companyschema = mongoose.Schema({
         type: String,
         required: true
     },
-    type: {
-        type: String
-    },
     address: {
         type: String,
         required: true
@@ -29,18 +31,34 @@ const companyschema = mongoose.Schema({
         required: true
     },
     password: {
-        type: String,
-        required: true
+        type: String
     },
-    sysadmin: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Sysadmin',
-        required: true
+    created: {
+        year: Number,
+        month: Number,
+        weekday: Number,
+        day: Number,
+        hour: Number,
+        minute: Number
+    },
+    updated: {
+        year: Number,
+        month: Number,
+        weekday: Number,
+        day: Number,
+        hour: Number,
+        minute: Number
     }
-}, { timestamps: true })
+})
 
 companyschema.virtual('staffs', {
     ref: 'Staff',
+    localField: '_id',
+    foreignField: 'company'
+})
+
+companyschema.virtual('services', {
+    ref: 'Service',
     localField: '_id',
     foreignField: 'company'
 })

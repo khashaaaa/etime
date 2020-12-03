@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const sysadmin = mongoose.Schema({
+const sysadmin = new mongoose.Schema({
     _id: mongoose.Types.ObjectId,
     name: {
         type: String,
@@ -15,12 +15,20 @@ const sysadmin = mongoose.Schema({
         required: true,
         minlength: 8
     },
+    created: {
+        year: Number,
+        month: Number,
+        weekday: Number,
+        day: Number,
+        hour: Number,
+        minute: Number
+    },
     password: {
         type: String,
         required: true,
         minlength: 8
     }
-}, { timestamps: true })
+})
 
 sysadmin.virtual('companies', {
     ref: 'Company',
